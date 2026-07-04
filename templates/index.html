@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyCast - Weather Predictor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <header>
+        <div class="logo">
+            <span class="weather-icon">🌤️</span>
+            <h1>Sky<span class="highlight">Cast</span></h1>
+        </div>
+        <p class="tagline">AI-Powered Weather Analysis & Temperature Prediction</p>
+    </header>
+
+    <main>
+        <div class="controls">
+            <div class="search-box">
+                <select id="citySelect">
+                    {% for city in cities %}
+                    <option value="{{ city }}" {% if city == 'New York' %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="loadAllData()" id="loadBtn">
+                    <span>🔍</span> Analyze City
+                </button>
+            </div>
+            <div class="quick-cities">
+                <button class="chip active" onclick="selectCity('New York')">New York</button>
+                <button class="chip" onclick="selectCity('London')">London</button>
+                <button class="chip" onclick="selectCity('Tokyo')">Tokyo</button>
+                <button class="chip" onclick="selectCity('Paris')">Paris</button>
+                <button class="chip" onclick="selectCity('Mumbai')">Mumbai</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Current Weather Card -->
+            <div class="card current-weather" id="currentCard">
+                <h2>Current Weather</h2>
+                <div class="current-content">
+                    <div class="temp-display">
+                        <span class="big-temp" id="currentTemp">--°C</span>
+                        <span class="weather-desc" id="currentDesc">Loading...</span>
+                    </div>
+                    <div class="weather-details">
+                        <div class="detail"><span class="detail-icon">💧</span><span id="humidity">--%</span><label>Humidity</label></div>
+                        <div class="detail"><span class="detail-icon">💨</span><span id="windSpeed">-- m/s</span><label>Wind</label></div>
+                        <div class="detail"><span class="detail-icon">🌡️</span><span id="feelsLike">--°C</span><label>Feels Like</label></div>
+                        <div class="detail"><span class="detail-icon">🔽</span><span id="pressure">-- hPa</span><label>Pressure</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Analysis Card -->
+            <div class="card" id="trendCard">
+                <h2>30-Day Trend Analysis</h2>
+                <div class="trend-content" id="trendContent">
+                    <div class="trend-big" id="trendBig">--</div>
+                    <div class="trend-details">
+                        <div class="trend-item"><span>Avg Temp:</span><span id="avgTemp">--°C</span></div>
+                        <div class="trend-item"><span>Max Temp:</span><span id="maxTemp">--°C</span></div>
+                        <div class="trend-item"><span>Min Temp:</span><span id="minTemp">--°C</span></div>
+                        <div class="trend-item"><span>Daily Change:</span><span id="slope">--°C/day</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Chart -->
+            <div class="card chart-card wide">
+                <h2>Historical Temperature (30 Days)</h2>
+                <div class="chart-container">
+                    <canvas id="historicalChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Prediction Chart -->
+            <div class="card chart-card wide">
+                <h2>Temperature Prediction (Next 14 Days)</h2>
+                <div class="chart-container">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+                <div class="model-metrics" id="modelMetrics"></div>
+            </div>
+
+            <!-- Forecast -->
+            <div class="card chart-card wide">
+                <h2>5-Day Forecast</h2>
+                <div class="forecast-grid" id="forecastGrid"></div>
+            </div>
+
+            <!-- City Comparison -->
+            <div class="card wide">
+                <h2>City Comparison</h2>
+                <div class="comparison-controls">
+                    <div class="city-chips" id="compareChips"></div>
+                    <button onclick="compareCities()" class="compare-btn">Compare Selected</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Built with Flask, Scikit-learn, Chart.js & OpenWeatherMap API | SkyCast v1.0</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</body>
+</html>
