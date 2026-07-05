@@ -1,5 +1,7 @@
 # Mitzy - Weather Dashboard
 
+🌤 **Live Demo:** [weather-predictor-mitzy.vercel.app](https://weather-predictor-mitzy.vercel.app)
+
 A premium, glassmorphism-inspired dark weather dashboard with real-time data, ML-powered temperature predictions, and interactive visualizations.
 
 ## Features
