@@ -22,8 +22,5 @@
       "src": "/(.*)",
       "dest": "/api/index.py"
     }
-  ],
-  "env": {
-    "OPENWEATHERMAP_API_KEY": "6fc18daebaf10a18f8e5e0e9cde7f254"
-  }
+  ]
 }

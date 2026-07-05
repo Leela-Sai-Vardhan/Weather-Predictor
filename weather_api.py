@@ -3,7 +3,7 @@ import json
 import requests
 from datetime import datetime, timedelta
 
-API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '6fc18daebaf10a18f8e5e0e9cde7f254')
+API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 BASE_URL = 'https://api.openweathermap.org/data/2.5'
 
 HISTORICAL_CACHE = os.path.join(os.path.dirname(__file__), 'data', 'weather_cache.json')
