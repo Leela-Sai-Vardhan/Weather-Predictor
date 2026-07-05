@@ -8,6 +8,7 @@ const CITIES_SEARCH = [
     'Los Angeles','Chicago','San Francisco','Miami','Seattle','Denver',
     'Beijing','Shanghai','Hong Kong','Delhi','Bangalore','Jakarta',
     'Cape Town','Nairobi','Rio de Janeiro','Lima','Bogota','Santiago',
+    'Vijayawada','Kanuru','Hyderabad','Chennai','Kolkata','Pune',
 ];
 
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -19,39 +20,117 @@ const WEATHER_ICONS = {
     'moderate rain': '🌧', 'heavy rain': '⛈', 'thunderstorm': '⛈',
     'snow': '❄️', 'mist': '🌫', 'fog': '🌫', 'haze': '🌫',
     'light intensity rain': '🌦', 'drizzle': '🌦',
+    'smoke': '🌫', 'dust': '🌫', 'sand': '🌫',
+    'rain': '🌧', 'shower rain': '🌦',
 };
 
-// ===== GEOLOCATION =====
+const WIND_DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+
+// ===== SECURITY: Input Sanitization =====
+function sanitize(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ===== GEOLOCATION (Multi-fallback) =====
 function detectLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                const { latitude, longitude } = pos.coords;
-                try {
-                    const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude);
-                    const data = await res.json();
-                    const city = data.address.city || data.address.town || data.address.state || 'New York';
-                    currentCity = city;
-                    document.getElementById('cityLabel').textContent = city + ', ' + (data.address.country || '');
-                    loadAllData();
-                } catch {
-                    currentCity = 'New York';
-                    document.getElementById('cityLabel').textContent = 'New York, US';
-                    loadAllData();
-                }
-            },
-            () => {
-                currentCity = 'New York';
-                document.getElementById('cityLabel').textContent = 'New York, US';
-                loadAllData();
-            },
-            { timeout: 8000 }
-        );
-    } else {
-        currentCity = 'New York';
-        document.getElementById('cityLabel').textContent = 'New York, US';
+    if (!navigator.geolocation) {
+        setCity('New York', 'US');
         loadAllData();
+        return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const { latitude, longitude } = pos.coords;
+
+            // Fallback chain: 1) Nominatim 2) OpenWeatherMap 3) Manual
+            let resolved = false;
+
+            // Attempt 1: Nominatim reverse geocoding
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                const res = await fetch(
+                    'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude + '&zoom=10&addressdetails=1',
+                    { signal: controller.signal, headers: { 'Accept': 'en' } }
+                );
+                clearTimeout(timeoutId);
+                const data = await res.json();
+
+                // Try multiple address fields for Indian cities
+                const addr = data.address || {};
+                const city = addr.city || addr.town || addr.village || addr.county || addr.state || '';
+                const country = addr.country_code ? addr.country_code.toUpperCase() : '';
+
+                if (city && city.length > 1) {
+                    setCity(city, country);
+                    resolved = true;
+                }
+            } catch (e) {
+                // Nominatim failed, try next
+            }
+
+            // Attempt 2: OpenWeatherMap geocoding
+            if (!resolved) {
+                try {
+                    const res = await fetch(
+                        'https://api.openweathermap.org/geo/1.0/reverse?lat=' + latitude + '&lon=' + longitude + '&limit=1&appid=' + getWeatherApiKey()
+                    );
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        setCity(data[0].name, data[0].country || '');
+                        resolved = true;
+                    }
+                } catch (e) {
+                    // OWM failed too
+                }
+            }
+
+            // Attempt 3: Use coordinates directly to get weather
+            if (!resolved) {
+                try {
+                    const res = await fetch('/api/current-coords', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lat: latitude, lon: longitude })
+                    });
+                    const data = await res.json();
+                    if (data.city) {
+                        setCity(data.city, data.country || '');
+                        resolved = true;
+                    }
+                } catch (e) {
+                    // coord API not available
+                }
+            }
+
+            // Final fallback
+            if (!resolved) {
+                setCity('New York', 'US');
+            }
+
+            loadAllData();
+        },
+        () => {
+            // Geolocation denied or failed
+            setCity('New York', 'US');
+            loadAllData();
+        },
+        { timeout: 10000, enableHighAccuracy: false }
+    );
+}
+
+function getWeatherApiKey() {
+    // Client-side doesn't have the key; use our proxy
+    return '';
+}
+
+function setCity(city, country) {
+    currentCity = city;
+    const label = country ? sanitize(city) + ', ' + sanitize(country) : sanitize(city);
+    document.getElementById('cityLabel').textContent = label;
 }
 
 // ===== INIT =====
@@ -60,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupToggle();
     setupSearch();
     setupCityCards();
+    setupThemeToggle();
     detectLocation();
     loadCitySidebar();
     updateClock();
@@ -68,8 +148,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function updateClock() {
     const now = new Date();
-    document.getElementById('todayDay').textContent = DAYS[now.getDay()];
-    document.getElementById('todayTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const dayEl = document.getElementById('todayDay');
+    const timeEl = document.getElementById('todayTime');
+    if (dayEl) dayEl.textContent = DAYS[now.getDay()];
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ===== THEME TOGGLE =====
+function setupThemeToggle() {
+    const toggle = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('mitzy-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+
+    toggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('mitzy-theme', next);
+
+        // Update charts for new theme
+        if (historicalChart) historicalChart.destroy();
+        if (predictionChart) predictionChart.destroy();
+        if (rainChart) rainChart.destroy();
+        loadHistorical();
+        loadPredictions();
+    });
+}
+
+function getThemeColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    return {
+        text: isDark ? '#8E8EA0' : '#6B6B80',
+        grid: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)',
+        sky: isDark ? '#A9D7FF' : '#3B82F6',
+        purple: isDark ? '#8B5CF6' : '#7C3AED',
+        skyBg: isDark ? 'rgba(169,215,255,0.08)' : 'rgba(59,130,246,0.06)',
+        purpleBg: isDark ? 'rgba(139,92,246,0.08)' : 'rgba(124,58,237,0.06)',
+        barActive: isDark ? 'rgba(169,215,255,0.7)' : 'rgba(59,130,246,0.6)',
+        barInactive: isDark ? 'rgba(169,215,255,0.3)' : 'rgba(59,130,246,0.25)',
+    };
 }
 
 // ===== TABS =====
@@ -89,6 +206,12 @@ function setupToggle() {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            const rainCard = document.getElementById('rainChartCard');
+            if (btn.dataset.view === 'rain') {
+                rainCard.style.display = 'block';
+            } else {
+                rainCard.style.display = 'none';
+            }
         });
     });
 }
@@ -104,7 +227,7 @@ function setupSearch() {
         const matches = CITIES_SEARCH.filter(c => c.toLowerCase().includes(q)).slice(0, 6);
         if (matches.length === 0) { results.classList.remove('active'); return; }
         results.innerHTML = matches.map(c =>
-            '<div class="search-result-item" data-city="' + c + '">' + c + '</div>'
+            '<div class="search-result-item" data-city="' + sanitize(c) + '">' + sanitize(c) + '</div>'
         ).join('');
         results.classList.add('active');
         results.querySelectorAll('.search-result-item').forEach(item => {
@@ -123,7 +246,7 @@ function setupSearch() {
             const q = input.value.trim();
             if (q) {
                 currentCity = q;
-                document.getElementById('cityLabel').textContent = q;
+                document.getElementById('cityLabel').textContent = sanitize(q);
                 input.value = '';
                 results.classList.remove('active');
                 loadAllData();
@@ -147,6 +270,16 @@ function setupCityCards() {
     });
 }
 
+// ===== MAP MARKERS =====
+document.addEventListener('click', (e) => {
+    const marker = e.target.closest('.map-marker');
+    if (marker && marker.dataset.city) {
+        currentCity = marker.dataset.city;
+        document.getElementById('cityLabel').textContent = currentCity;
+        loadAllData();
+    }
+});
+
 // ===== LOAD ALL DATA =====
 async function loadAllData() {
     await Promise.all([
@@ -166,10 +299,11 @@ async function loadCurrentWeather() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ city: currentCity })
         });
+        if (!res.ok) throw new Error('API error');
         const d = await res.json();
 
         document.getElementById('todayTemp').textContent = d.temp + '°';
-        document.getElementById('todayDesc').textContent = d.description;
+        document.getElementById('todayDesc').textContent = d.description || 'N/A';
         document.getElementById('todayIcon').innerHTML =
             '<div class="weather-icon-3d">' + getIcon(d.description) + '</div>';
         document.getElementById('feelsLike').textContent = d.feels_like + '°';
@@ -177,7 +311,15 @@ async function loadCurrentWeather() {
         document.getElementById('pressure').textContent = d.pressure + ' hPa';
         document.getElementById('humidity').textContent = d.humidity + '%';
         document.getElementById('visibility').textContent = (d.visibility || 10) + ' km';
-        document.getElementById('uvIndex').textContent = Math.floor(Math.random() * 8 + 1);
+
+        // Wind direction from speed (mock since API doesn't provide)
+        const dirIdx = Math.floor((d.wind_speed * 7) % 16);
+        document.getElementById('windDir').textContent = WIND_DIRS[dirIdx];
+
+        // Update city label with actual city name from API
+        if (d.city) {
+            document.getElementById('cityLabel').textContent = d.city + (d.country ? ', ' + d.country : '');
+        }
 
         // Animate in
         const card = document.getElementById('todayCard');
@@ -201,6 +343,7 @@ async function loadForecast() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ city: currentCity })
         });
+        if (!res.ok) throw new Error('API error');
         const data = await res.json();
         const daily = data.filter((_, i) => i % 8 === 0).slice(0, 7);
         const container = document.getElementById('forecastStrip');
@@ -212,11 +355,11 @@ async function loadForecast() {
                 '<span class="fc-day">' + dayName + '</span>' +
                 '<span class="fc-icon">' + getIcon(d.description) + '</span>' +
                 '<span class="fc-temp">' + d.temp + '°</span>' +
-                '<span class="fc-desc">' + d.description + '</span>' +
+                '<span class="fc-desc">' + sanitize(d.description) + '</span>' +
                 '</div>';
         }).join('');
 
-        // Setup rain chart with hourly data
+        // Rain chart with hourly data
         const hourly = data.slice(0, 8);
         renderRainChart(hourly);
 
@@ -226,6 +369,7 @@ async function loadForecast() {
 }
 
 function renderRainChart(hourly) {
+    const colors = getThemeColors();
     const labels = hourly.map(d => {
         const dt = new Date(d.datetime);
         return dt.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
@@ -239,7 +383,7 @@ function renderRainChart(hourly) {
             labels,
             datasets: [{
                 data: rainChances,
-                backgroundColor: rainChances.map(v => v > 60 ? 'rgba(169,215,255,0.7)' : 'rgba(169,215,255,0.3)'),
+                backgroundColor: rainChances.map(v => v > 60 ? colors.barActive : colors.barInactive),
                 borderRadius: 6,
                 borderSkipped: false,
                 barThickness: 20,
@@ -250,7 +394,7 @@ function renderRainChart(hourly) {
             maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: { enabled: true } },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#5A5A6E', font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { color: colors.text, font: { size: 11 } } },
                 y: { display: false, max: 100 },
             },
             animation: { duration: 1200, easing: 'easeOutQuart' }
@@ -266,7 +410,9 @@ async function loadHistorical() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ city: currentCity, days: 30 })
         });
+        if (!res.ok) throw new Error('API error');
         const data = await res.json();
+        const colors = getThemeColors();
         const labels = data.data.map(d => d.date.slice(5));
         const temps = data.data.map(d => d.temp);
 
@@ -278,12 +424,12 @@ async function loadHistorical() {
                 datasets: [{
                     label: 'Temperature (°C)',
                     data: temps,
-                    borderColor: '#A9D7FF',
-                    backgroundColor: 'rgba(169,215,255,0.08)',
+                    borderColor: colors.sky,
+                    backgroundColor: colors.skyBg,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 2,
-                    pointBackgroundColor: '#A9D7FF',
+                    pointBackgroundColor: colors.sky,
                     borderWidth: 2,
                 }]
             },
@@ -292,8 +438,8 @@ async function loadHistorical() {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5A5A6E', font: { size: 10 }, maxTicksLimit: 8 } },
-                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5A5A6E', font: { size: 10 } } },
+                    x: { grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 10 }, maxTicksLimit: 8 } },
+                    y: { grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 10 } } },
                 },
                 animation: { duration: 1500, easing: 'easeOutQuart' }
             }
@@ -311,7 +457,9 @@ async function loadPredictions() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ city: currentCity, days_ahead: 14 })
         });
+        if (!res.ok) throw new Error('API error');
         const data = await res.json();
+        const colors = getThemeColors();
 
         const m = data.metrics;
         document.getElementById('modelMetrics').innerHTML =
@@ -337,8 +485,8 @@ async function loadPredictions() {
                     {
                         label: 'Historical',
                         data: histData,
-                        borderColor: '#A9D7FF',
-                        backgroundColor: 'rgba(169,215,255,0.08)',
+                        borderColor: colors.sky,
+                        backgroundColor: colors.skyBg,
                         fill: true,
                         tension: 0.4,
                         pointRadius: 2,
@@ -347,13 +495,13 @@ async function loadPredictions() {
                     {
                         label: 'Predicted',
                         data: predData,
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139,92,246,0.08)',
+                        borderColor: colors.purple,
+                        backgroundColor: colors.purpleBg,
                         fill: true,
                         tension: 0.4,
                         borderDash: [6, 3],
                         pointRadius: 3,
-                        pointBackgroundColor: '#8B5CF6',
+                        pointBackgroundColor: colors.purple,
                         borderWidth: 2,
                     }
                 ]
@@ -361,10 +509,10 @@ async function loadPredictions() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#8E8EA0', font: { size: 11 } } } },
+                plugins: { legend: { labels: { color: colors.text, font: { size: 11 } } } },
                 scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5A5A6E', font: { size: 10 }, maxTicksLimit: 10 } },
-                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5A5A6E', font: { size: 10 } } },
+                    x: { grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 10 }, maxTicksLimit: 12 } },
+                    y: { grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 10 } } },
                 },
                 animation: { duration: 1500, easing: 'easeOutQuart' }
             }
@@ -409,13 +557,3 @@ function getIcon(desc) {
     if (d.includes('fog') || d.includes('mist')) return '🌫';
     return '🌤';
 }
-
-// ===== ANIMATIONS CSS INJECTION =====
-const style = document.createElement('style');
-style.textContent = `
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-`;
-document.head.appendChild(style);

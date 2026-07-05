@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
     <title>Mitzy - Weather Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,12 +16,6 @@
         <!-- Top Navigation -->
         <nav class="navbar">
             <div class="nav-left">
-                <button class="nav-btn" id="menuBtn" title="Menu">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect y="2" width="18" height="2" rx="1" fill="currentColor"/><rect y="8" width="18" height="2" rx="1" fill="currentColor"/><rect y="14" width="18" height="2" rx="1" fill="currentColor"/></svg>
-                </button>
-                <button class="nav-btn" id="notifBtn" title="Notifications">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                </button>
                 <div class="location-display" id="locationDisplay">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     <span id="cityLabel">Detecting location...</span>
@@ -28,18 +24,15 @@
             <div class="nav-center">
                 <div class="search-bar" id="searchBar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" id="searchInput" placeholder="Search city..." autocomplete="off">
+                    <input type="text" id="searchInput" placeholder="Search city..." autocomplete="off" maxlength="100">
                     <div class="search-results" id="searchResults"></div>
                 </div>
             </div>
             <div class="nav-right">
-                <button class="nav-btn" id="settingsBtn" title="Settings">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <button class="nav-btn theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light theme">
+                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
-                <button class="nav-btn theme-toggle" id="themeToggle" title="Toggle theme">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                </button>
-                <div class="avatar" id="userAvatar">V</div>
             </div>
         </nav>
 
@@ -59,16 +52,16 @@
                     <div class="today-header">
                         <div>
                             <div class="today-day" id="todayDay">Monday</div>
-                            <div class="today-time" id="todayTime">11:42 PM</div>
+                            <div class="today-time" id="todayTime">--:--</div>
                         </div>
                         <div class="today-temp-wrap">
                             <span class="today-temp" id="todayTemp">--°</span>
                         </div>
                     </div>
                     <div class="today-icon" id="todayIcon">
-                        <div class="weather-icon-3d">☀️</div>
+                        <div class="weather-icon-3d">🌤</div>
                     </div>
-                    <div class="today-desc" id="todayDesc">Loading...</div>
+                    <div class="today-desc" id="todayDesc">Loading weather data...</div>
                     <div class="today-details">
                         <div class="detail-item">
                             <span class="detail-label">Real Feel</span>
@@ -91,8 +84,8 @@
                             <span class="detail-value" id="visibility">-- km</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">UV Index</span>
-                            <span class="detail-value" id="uvIndex">--</span>
+                            <span class="detail-label">Wind Dir</span>
+                            <span class="detail-value" id="windDir">--</span>
                         </div>
                     </div>
                 </div>
@@ -100,7 +93,7 @@
                 <!-- Forecast Toggle -->
                 <div class="forecast-toggle">
                     <button class="toggle-btn active" data-view="forecast">Forecast</button>
-                    <button class="toggle-btn" data-view="airquality">Air quality</button>
+                    <button class="toggle-btn" data-view="rain">Chance of Rain</button>
                 </div>
 
                 <!-- Forecast Cards -->
@@ -109,7 +102,7 @@
                 </div>
 
                 <!-- Rain Chart -->
-                <div class="rain-chart-card">
+                <div class="rain-chart-card" id="rainChartCard">
                     <h3 class="section-title">Chance of rain</h3>
                     <div class="rain-chart-container">
                         <canvas id="rainChart"></canvas>
@@ -124,29 +117,25 @@
                     <div class="map-container" id="mapContainer">
                         <div class="map-placeholder">
                             <div class="map-world">
-                                <div class="map-marker" style="top:30%;left:20%" data-city="New York">☀️</div>
-                                <div class="map-marker" style="top:25%;left:48%" data-city="London">🌧</div>
-                                <div class="map-marker" style="top:35%;left:75%" data-city="Tokyo">⛅</div>
-                                <div class="map-marker" style="top:55%;left:50%" data-city="Mumbai">☀️</div>
-                                <div class="map-marker" style="top:70%;left:80%" data-city="Sydney">🌤</div>
+                                <div class="map-marker" style="top:30%;left:15%" data-city="New York">☀️</div>
+                                <div class="map-marker" style="top:25%;left:47%" data-city="London">🌧</div>
+                                <div class="map-marker" style="top:35%;left:78%" data-city="Tokyo">⛅</div>
+                                <div class="map-marker" style="top:50%;left:60%" data-city="Mumbai">☀️</div>
+                                <div class="map-marker" style="top:65%;left:82%" data-city="Sydney">🌤</div>
                                 <div class="map-marker" style="top:40%;left:55%" data-city="Dubai">☀️</div>
-                                <div class="map-marker" style="top:25%;left:50%" data-city="Paris">⛅</div>
-                                <div class="map-marker" style="top:22%;left:52%" data-city="Berlin">🌧</div>
+                                <div class="map-marker" style="top:25%;left:49%" data-city="Paris">⛅</div>
+                                <div class="map-marker" style="top:22%;left:51%" data-city="Vijayawada">🌧</div>
                             </div>
                         </div>
                         <div class="map-explore-card">
                             <div class="explore-content">
                                 <h4>Explore global map of</h4>
                                 <p>wind, weather and oceans condition.</p>
-                                <button class="cta-btn" onclick="document.querySelector('.map-section').scrollIntoView({behavior:'smooth'})">Get Started</button>
                             </div>
                         </div>
                         <div class="map-controls">
                             <button class="map-ctrl-btn" title="Zoom in">+</button>
                             <button class="map-ctrl-btn" title="Zoom out">−</button>
-                            <button class="map-ctrl-btn" title="Layers">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                            </button>
                             <button class="map-ctrl-btn" title="Compass">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor"/></svg>
                             </button>
@@ -202,11 +191,11 @@
         <!-- Trend Analytics -->
         <div class="analytics-section">
             <div class="analytics-card">
-                <h3 class="section-title">Temperature Trend</h3>
+                <h3 class="section-title">30-Day Temperature Trend</h3>
                 <div class="chart-wrap"><canvas id="historicalChart"></canvas></div>
             </div>
             <div class="analytics-card">
-                <h3 class="section-title">14-Day Prediction</h3>
+                <h3 class="section-title">14-Day Forecast Prediction</h3>
                 <div class="chart-wrap"><canvas id="predictionChart"></canvas></div>
                 <div class="model-metrics" id="modelMetrics"></div>
             </div>
