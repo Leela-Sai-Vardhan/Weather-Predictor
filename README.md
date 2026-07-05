@@ -1,59 +1,54 @@
-# SkyCast - Weather Predictor Dashboard
+# Mitzy - Weather Dashboard
 
-An interactive weather analysis dashboard that fetches real-time weather data, analyzes 30-day historical trends, and predicts future temperatures using Linear Regression with Polynomial Features.
+A premium, glassmorphism-inspired dark weather dashboard with real-time data, ML-powered temperature predictions, and interactive visualizations.
 
 ## Features
 
-- **Real-Time Weather** - Current conditions for any city (temperature, humidity, wind, pressure)
-- **30-Day Historical Analysis** - Temperature and humidity trends with trend detection (warming/cooling/stable)
-- **14-Day Temperature Prediction** - ML-powered forecast with model accuracy metrics (R², MAE, RMSE)
-- **5-Day Forecast** - Upcoming weather conditions
-- **City Comparison** - Compare weather across multiple cities with bar charts
-- **Interactive Charts** - Chart.js powered visualizations (line charts, bar charts, dual-axis)
+- **Geolocation** - Auto-detects your location on first visit
+- **Current Weather** - Real-time conditions with animated 3D weather icons
+- **7-Day Forecast** - Hourly rain probability chart with animated bars
+- **30-Day Historical Analysis** - Temperature trend with smooth line charts
+- **14-Day ML Prediction** - Polynomial Regression forecast with R²/MAE/RMSE metrics
+- **Global City Search** - Search any city worldwide with instant results
+- **City Sidebar** - Quick access to major cities with live weather
+- **World Map** - Interactive map with weather markers for global conditions
+- **Premium Dark UI** - Glassmorphism cards, smooth animations, 8px spacing grid
 
 ## Tech Stack
 
 - **Backend:** Python, Flask
 - **ML:** Scikit-learn (Linear Regression, Polynomial Features)
-- **API:** OpenWeatherMap (with mock data fallback)
+- **API:** OpenWeatherMap (with mock fallback)
 - **Frontend:** HTML, CSS, JavaScript, Chart.js
-
-## How It Works
-
-1. **Data Collection:** Fetches historical weather data (30 days) and real-time conditions
-2. **Feature Engineering:** Converts dates to numerical day features
-3. **Model Training:** Polynomial Regression (degree=2) for temperature prediction
-4. **Forecasting:** Projects temperatures 14 days into the future
-5. **Visualization:** Interactive charts for historical trends, predictions, and city comparisons
+- **Design:** Glassmorphism, dark theme, Inter font
 
 ## Run Locally
 
 ```bash
 cd weather-predictor
 pip install -r requirements.txt
-python app.py            # Start Flask server on port 5001
+python app.py
 ```
 
-Open http://localhost:5001 in your browser.
+Open http://localhost:5001
 
-## API Key (Optional)
+## API Key
 
-For real weather data, get a free API key from [OpenWeatherMap](https://openweathermap.org/api) and set it:
+Set your OpenWeatherMap API key as an environment variable:
 
 ```bash
-# Windows PowerShell
-$env:OPENWEATHERMAP_API_KEY="your_api_key_here"
-
-# Or create a .env file
-echo OPENWEATHERMAP_API_KEY=your_api_key_here > .env
+export OPENWEATHERMAP_API_KEY=your_key_here
 ```
 
-Without an API key, the app uses realistic mock data for demonstration.
+Without an API key, the app uses realistic mock data.
 
-## Model Metrics
+## Design
 
-| Metric | Description |
-|--------|-------------|
-| R² Score | How well the model fits (closer to 1.0 is better) |
-| MAE | Mean Absolute Error in °C |
-| RMSE | Root Mean Squared Error in °C |
+Premium dark glassmorphism dashboard with:
+- 28px outer container radius
+- 20px card radius
+- 8px spacing grid
+- Inter font family
+- Animated weather icons
+- Smooth hover transitions
+- Chart.js animated visualizations

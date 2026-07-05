@@ -10,6 +10,8 @@ POPULAR_CITIES = [
     'New York', 'London', 'Tokyo', 'Paris', 'Mumbai',
     'Sydney', 'Dubai', 'Berlin', 'Toronto', 'Singapore',
     'Seoul', 'Bangkok', 'Amsterdam', 'Rome', 'Istanbul',
+    'Barcelona', 'Moscow', 'Cairo', 'Lagos', 'Buenos Aires',
+    'Mexico City', 'Los Angeles', 'Chicago', 'San Francisco', 'Miami',
 ]
 
 
