@@ -37,11 +37,12 @@ function sanitize(str) {
 function detectLocation() {
     if (!navigator.geolocation) {
         setCity('New York', 'US');
-        loadAllData();
         return;
     }
+    const timeoutId = setTimeout(() => { setCity('New York', 'US'); }, 8000);
     navigator.geolocation.getCurrentPosition(
         async (pos) => {
+            clearTimeout(timeoutId);
             const { latitude, longitude } = pos.coords;
             let resolved = false;
             try {
@@ -70,9 +71,8 @@ function detectLocation() {
                 } catch (e) {}
             }
             if (!resolved) setCity('New York', 'US');
-            loadAllData();
         },
-        () => { setCity('New York', 'US'); loadAllData(); },
+        () => { clearTimeout(timeoutId); setCity('New York', 'US'); },
         { timeout: 10000, enableHighAccuracy: false }
     );
 }
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCityCards();
     setupThemeToggle();
     detectLocation();
-    loadCitySidebar();
+    loadAllData();
     updateClock();
     setInterval(updateClock, 30000);
 });
