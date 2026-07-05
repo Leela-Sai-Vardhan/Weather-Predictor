@@ -2,7 +2,7 @@
 
 🌤 **Live Demo:** [weather-predictor-mitzy.vercel.app](https://weather-predictor-mitzy.vercel.app)
 
-A premium, glassmorphism-inspired dark weather dashboard with real-time data, ML-powered temperature predictions, and interactive visualizations.
+A dark weather dashboard with real-time data, temperature predictions, and interactive charts.
 
 ## Features
 
@@ -10,11 +10,11 @@ A premium, glassmorphism-inspired dark weather dashboard with real-time data, ML
 - **Current Weather** - Real-time conditions with animated 3D weather icons
 - **7-Day Forecast** - Hourly rain probability chart with animated bars
 - **30-Day Historical Analysis** - Temperature trend with smooth line charts
-- **14-Day ML Prediction** - Polynomial Regression forecast with R²/MAE/RMSE metrics
+- **14-Day Forecast** - Temperature predictions with accuracy metrics
 - **Global City Search** - Search any city worldwide with instant results
 - **City Sidebar** - Quick access to major cities with live weather
 - **World Map** - Interactive map with weather markers for global conditions
-- **Premium Dark UI** - Glassmorphism cards, smooth animations, 8px spacing grid
+- **Dark UI** - Glass cards, smooth animations, clean spacing
 
 ## Tech Stack
 
@@ -46,11 +46,9 @@ Without an API key, the app uses realistic mock data.
 
 ## Design
 
-Premium dark glassmorphism dashboard with:
-- 28px outer container radius
-- 20px card radius
-- 8px spacing grid
-- Inter font family
+Dark glass dashboard with:
+- Rounded glass cards
+- Inter font
 - Animated weather icons
-- Smooth hover transitions
-- Chart.js animated visualizations
+- Smooth hover effects
+- Chart.js charts

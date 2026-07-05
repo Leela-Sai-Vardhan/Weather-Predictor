@@ -16,7 +16,7 @@ def prepare_features(data):
 
 
 def train_forecast_model(data):
-    """Train model in-memory. No file writes (Vercel read-only fs)."""
+    """Train the prediction model."""
     df = prepare_features(data)
     X = df[['day_num']].values
     y = df['temp'].values

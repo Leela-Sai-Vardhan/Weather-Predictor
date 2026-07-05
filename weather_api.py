@@ -115,7 +115,7 @@ def get_forecast(city, days=7):
 
 
 def get_historical_data(city, days=30):
-    """Generate historical data in-memory. No file writes (Vercel read-only fs)."""
+    """Generate simulated historical data."""
     return generate_mock_historical(city, days)
 
 
