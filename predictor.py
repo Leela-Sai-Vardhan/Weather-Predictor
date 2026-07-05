@@ -1,6 +1,4 @@
 import os
-import json
-import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -8,8 +6,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-
-MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models')
 
 
 def prepare_features(data):
@@ -20,6 +16,7 @@ def prepare_features(data):
 
 
 def train_forecast_model(data):
+    """Train model in-memory. No file writes (Vercel read-only fs)."""
     df = prepare_features(data)
     X = df[['day_num']].values
     y = df['temp'].values
@@ -29,16 +26,16 @@ def train_forecast_model(data):
         LinearRegression()
     )
     model.fit(X, y)
-    y_pred = model.predict(X)
 
-    metrics = {
-        'r2': round(r2_score(y, y_pred), 4),
-        'mae': round(mean_absolute_error(y, y_pred), 2),
-        'rmse': round(np.sqrt(mean_squared_error(y, y_pred)), 2),
-    }
-
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    joblib.dump(model, os.path.join(MODELS_DIR, 'forecast_model.pkl'))
+    try:
+        y_pred = model.predict(X)
+        metrics = {
+            'r2': round(float(r2_score(y, y_pred)), 4),
+            'mae': round(float(mean_absolute_error(y, y_pred)), 2),
+            'rmse': round(float(np.sqrt(mean_squared_error(y, y_pred))), 2),
+        }
+    except Exception:
+        metrics = {'r2': 0.0, 'mae': 0.0, 'rmse': 0.0}
 
     return model, metrics
 

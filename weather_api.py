@@ -5,11 +5,7 @@ from datetime import datetime, timedelta
 
 API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 BASE_URL = 'https://api.openweathermap.org/data/2.5'
-GEO_URL = 'https://api.openweathermap.org/geo/1.0'
 
-HISTORICAL_CACHE = os.path.join(os.path.dirname(__file__), 'data', 'weather_cache.json')
-
-# Extended base temperatures for mock data (covers more cities)
 BASE_TEMPS = {
     'new york': 22, 'london': 16, 'tokyo': 25, 'paris': 18,
     'mumbai': 30, 'sydney': 20, 'dubai': 35, 'berlin': 17,
@@ -78,7 +74,6 @@ def get_current_weather_by_coords(lat, lon):
 
 def _mock_from_coords(lat, lon):
     import random
-    # Estimate temp from latitude (rough approximation)
     temp = 30 - abs(lat) * 0.7 + random.uniform(-3, 3)
     city_name = f"{lat:.2f}, {lon:.2f}"
     return {
@@ -120,17 +115,8 @@ def get_forecast(city, days=7):
 
 
 def get_historical_data(city, days=30):
-    cache = load_cache()
-    if city in cache:
-        cached_data = cache[city]
-        if len(cached_data) >= days:
-            return cached_data[-days:]
-
-    data = generate_mock_historical(city, days)
-
-    cache[city] = data
-    save_cache(cache)
-    return data
+    """Generate historical data in-memory. No file writes (Vercel read-only fs)."""
+    return generate_mock_historical(city, days)
 
 
 def generate_mock_current(city):
@@ -185,19 +171,3 @@ def generate_mock_historical(city, days):
             'wind_speed': round(random.uniform(0.5, 15), 1),
         })
     return data
-
-
-def load_cache():
-    if os.path.exists(HISTORICAL_CACHE):
-        try:
-            with open(HISTORICAL_CACHE, 'r') as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            return {}
-    return {}
-
-
-def save_cache(data):
-    os.makedirs(os.path.dirname(HISTORICAL_CACHE), exist_ok=True)
-    with open(HISTORICAL_CACHE, 'w') as f:
-        json.dump(data, f, indent=2)
